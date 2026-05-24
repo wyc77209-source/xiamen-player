@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海之恋 · 洪英士 · 外公专属版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  color:#fff; background:#000;
+}
+
+/* ═══ Blurred photo background (网易云风) ═══ */
+#bg-photo{
+  position:fixed;inset:-8%;z-index:0;
+  background:url('xiamen_cover.png') center/cover no-repeat;
+  filter:blur(48px) brightness(.28) saturate(1.3);
+  transform:scale(1.08);
+  will-change:filter;
+}
+#bg-overlay{
+  position:fixed;inset:0;z-index:1;
+  background:linear-gradient(
+    180deg,
+    rgba(0,0,0,.55) 0%,
+    rgba(0,5,20,.45) 40%,
+    rgba(0,5,20,.65) 100%
+  );
+}
+
+/* ═══ Scrollable app shell ═══ */
+#app{
+  position:relative;z-index:10;
+  height:100vh;overflow:hidden;
+  display:flex;flex-direction:column;
+  max-width:1100px;margin:0 auto;
+  padding:20px 24px 16px;
+}
+
+/* ═══ Header ═══ */
+#hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;margin-bottom:14px;
+}
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.4);
+  color:#93c5fd;padding:3px 11px;border-radius:999px;font-size:11px;font-weight:600;
+}
+
+/* ═══ Main body ═══ */
+#main{
+  flex:1;min-height:0;
+  display:flex;gap:32px;align-items:flex-start;
+}
+
+/* ═══ Left column ═══ */
+#left{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:18px;
+  width:min(300px,42vw);
+}
+
+/* ═══ Vinyl wrapper ═══ */
+#vinyl-wrap{
+  position:relative;
+  width:min(280px,40vw);height:min(280px,40vw);
+  flex-shrink:0;
+}
+
+/* ═══ Vinyl disc ═══ */
+#vinyl{
+  width:100%;height:100%;border-radius:50%;
+  cursor:pointer;position:relative;
+  background:
+    /* highlight sheen */
+    radial-gradient(ellipse 52% 32% at 33% 27%, rgba(255,255,255,.09) 0%, transparent 55%),
+    /* groove rings */
+    repeating-radial-gradient(circle at 50% 50%,
+      transparent 0px, transparent 2px,
+      rgba(255,255,255,.038) 2px, rgba(255,255,255,.038) 2.8px,
+      transparent 2.8px, transparent 5.2px,
+      rgba(255,255,255,.02) 5.2px, rgba(255,255,255,.02) 5.8px
+    ),
+    /* conic shimmer */
+    conic-gradient(from 0deg,#1b1b1b 0%,#111 20%,#1b1b1b 40%,#0f0f0f 60%,#1b1b1b 80%,#111 100%),
+    /* base */
+    radial-gradient(circle,#1c1c1c,#060606);
+  box-shadow:
+    0 0 0 1.5px rgba(255,255,255,.07),
+    0 0 50px rgba(0,0,0,.8),
+    0 20px 80px rgba(0,0,0,.7);
+  animation:vinylSpin 1.85s linear infinite;
+  animation-play-state:paused;
+  transition:box-shadow .5s;
+}
+#vinyl.playing{
+  animation-play-state:running;
+  box-shadow:
+    0 0 0 1.5px rgba(255,255,255,.1),
+    0 0 40px rgba(59,130,246,.28),
+    0 0 90px rgba(59,130,246,.14),
+    0 20px 80px rgba(0,0,0,.7);
+}
+@keyframes vinylSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Label (photo) */
+#vinyl-label{
+  position:absolute;top:50%;left:50%;
+  width:44%;height:44%;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:url('xiamen_cover.png') center/cover no-repeat;
+  box-shadow:0 0 18px rgba(0,0,0,.6),inset 0 0 10px rgba(0,0,0,.4);
+  overflow:hidden;
+}
+/* Center hole */
+#vinyl-hole{
+  position:absolute;top:50%;left:50%;
+  width:9px;height:9px;border-radius:50%;
+  background:#000;transform:translate(-50%,-50%);
+  z-index:3;box-shadow:0 0 3px rgba(0,0,0,1);
+}
+
+/* ═══ Tonearm ═══ */
+#arm-wrap{
+  position:absolute;
+  top:-38px;right:-52px;
+  width:110px;height:210px;
+  transform-origin:82px 26px;  /* pivot = center of base circle */
+  transform:rotate(-28deg);    /* lifted/paused position */
+  transition:transform 1s cubic-bezier(.35,0,.15,1);
+  pointer-events:none;
+  z-index:5;
+}
+#arm-wrap.playing{transform:rotate(2deg)}  /* resting on vinyl */
+
+/* ═══ Song info below vinyl ═══ */
+#song-info{text-align:center;width:100%}
+#song-title{
+  font-family:'Noto Serif SC',serif;
+  font-size:clamp(16px,2vw,22px);font-weight:700;
+  color:#fff;letter-spacing:2px;margin-bottom:4px;
+}
+#song-artist{color:rgba(255,255,255,.5);font-size:13px}
+#song-sub{
+  margin-top:7px;display:inline-flex;align-items:center;gap:5px;
+  padding:4px 13px;border-radius:999px;font-size:11px;
+  background:rgba(30,80,200,.15);border:1px solid rgba(59,130,246,.22);color:#93c5fd;
+}
+
+/* ═══ Action row ═══ */
+.act-row{display:flex;align-items:center;gap:16px}
+.ctrl-btn{
+  background:none;border:none;color:rgba(255,255,255,.55);
+  cursor:pointer;padding:8px;border-radius:50%;
+  transition:all .2s;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+}
+.ctrl-btn:hover{color:#fff;background:rgba(255,255,255,.1);transform:scale(1.12)}
+
+/* ═══ Progress bar ═══ */
+#prog-wrap{width:100%}
+.prog-track{
+  height:3px;background:rgba(255,255,255,.12);border-radius:999px;
+  cursor:pointer;position:relative;user-select:none;
+}
+.prog-fill{
+  height:100%;
+  background:linear-gradient(90deg,#2563eb,#60a5fa);
+  border-radius:999px;position:relative;pointer-events:none;
+  transition:width .08s linear;
+}
+.prog-fill::after{
+  content:'';position:absolute;right:-7px;top:50%;
+  transform:translateY(-50%);width:13px;height:13px;
+  background:#fff;border-radius:50%;
+  box-shadow:0 0 7px rgba(59,130,246,.8);
+  opacity:0;transition:opacity .2s;
+}
+.prog-track:hover .prog-fill::after{opacity:1}
+.time-row{display:flex;justify-content:space-between;margin-top:5px}
+.time-label{color:rgba(255,255,255,.35);font-size:11px;font-variant-numeric:tabular-nums}
+
+/* ═══ Playback controls ═══ */
+.ctrl-row{display:flex;align-items:center;gap:12px}
+.play-btn{
+  width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+  color:#fff;font-size:19px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 22px rgba(59,130,246,.45);
+  transition:all .2s;
+}
+.play-btn:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(59,130,246,.65)}
+
+/* ═══ Volume ═══ */
+.vol-row{display:flex;align-items:center;gap:9px;width:100%}
+input[type=range]{
+  -webkit-appearance:none;background:transparent;cursor:pointer;flex:1;
+}
+input[type=range]::-webkit-slider-track{
+  height:3px;background:rgba(255,255,255,.15);border-radius:999px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;
+  background:#3b82f6;border-radius:50%;margin-top:-4.5px;
+}
+
+/* ═══ Right column: Lyrics ═══ */
+#right{
+  flex:1;min-width:0;min-height:0;
+  display:flex;flex-direction:column;
+  height:100%;
+}
+.lyrics-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;margin-bottom:12px;
+}
+.tab-btn{
+  padding:5px 14px;border-radius:20px;font-size:12.5px;font-weight:600;
+  cursor:pointer;transition:all .2s;border:1px solid;
+}
+.tab-active{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#93c5fd}
+.tab-idle{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+#sync-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 12px;border:1px solid rgba(59,130,246,.38);
+  background:rgba(59,130,246,.16);border-radius:20px;
+  color:#93c5fd;font-size:11px;cursor:pointer;transition:all .2s;
+}
+#sync-btn.off{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.35)}
+.lyrics-scroll{
+  flex:1;overflow-y:auto;scroll-behavior:smooth;
+}
+.lyrics-scroll::-webkit-scrollbar{width:3px}
+.lyrics-scroll::-webkit-scrollbar-track{background:transparent}
+.lyrics-scroll::-webkit-scrollbar-thumb{background:rgba(59,130,246,.3);border-radius:2px}
+.lyric-line{
+  padding:10px 14px;cursor:pointer;border-radius:10px;
+  color:rgba(255,255,255,.32);font-size:14px;line-height:1.7;
+  transition:all .35s;
+}
+.lyric-line:hover{background:rgba(59,130,246,.08);color:rgba(255,255,255,.65)}
+.lyric-line.active{
+  color:#93c5fd;font-size:15px;font-weight:600;
+  background:rgba(59,130,246,.12);
+  text-shadow:0 0 16px rgba(59,130,246,.5);
+}
+
+/* ═══ Playlist ═══ */
+.track-item{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  border-radius:10px;cursor:pointer;transition:all .2s;
+  color:rgba(255,255,255,.5);font-size:13px;
+}
+.track-item:hover{background:rgba(59,130,246,.08);color:rgba(255,255,255,.8)}
+.track-item.active{background:rgba(59,130,246,.14);color:#93c5fd;font-weight:600}
+.track-num{width:20px;text-align:center;font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0}
+.track-item.active .track-num{color:#3b82f6}
+
+/* ═══ Dedication card ═══ */
+#ded-card{
+  flex-shrink:0;margin-top:12px;
+  padding:11px 15px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(30,80,200,.12),rgba(15,50,140,.08));
+  border:1px solid rgba(59,130,246,.18);
+}
+
+/* ═══ Floating hearts ═══ */
+.floating-heart{
+  position:fixed;pointer-events:none;z-index:9999;
+  animation:floatUp 2s ease-out forwards;
+}
+@keyframes floatUp{
+  0%{transform:translateY(0) scale(1) rotate(-5deg);opacity:1}
+  100%{transform:translateY(-170px) scale(1.6) rotate(10deg);opacity:0}
+}
+
+/* ═══ Toast ═══ */
+#toast{
+  position:fixed;bottom:30px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:rgba(8,16,40,.95);border:1px solid rgba(59,130,246,.3);
+  color:#fff;padding:10px 22px;border-radius:14px;font-size:13px;
+  opacity:0;transition:all .3s;pointer-events:none;z-index:9998;
+  backdrop-filter:blur(16px);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ═══ Mobile ═══ */
+@media(max-width:768px){
+  html,body{overflow:auto}
+  #app{height:auto;overflow:visible;padding:16px}
+  #main{flex-direction:column;align-items:center;gap:16px}
+  #left{width:100%;max-width:320px}
+  #right{width:100%;height:auto}
+  .lyrics-scroll{height:260px}
+  #vinyl-wrap{width:min(240px,60vw);height:min(240px,60vw)}
+}
+</style>
+</head>
+<body>
+
+<!-- Blurred photo background -->
+<div id="bg-photo"></div>
+<div id="bg-overlay"></div>
+
+<!-- App shell -->
+<div id="app">
+
+  <!-- ── Header ── -->
+  <div id="hdr">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span class="badge"><i class="fas fa-crown" style="color:#fbbf24;font-size:9px"></i> 外公专属版</span>
+      <span class="badge" style="background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.35);color:#fca5a5">
+        <i class="fas fa-heart" style="font-size:9px"></i> AI协创
+      </span>
+    </div>
+    <div style="color:rgba(255,255,255,.25);font-size:11.5px;text-align:right;line-height:1.5">
+      <div>《海之恋》· 洪英士 原作</div>
+      <div style="color:rgba(255,255,255,.15)">献给厦门经济特区建45周年</div>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div id="main">
+
+    <!-- ════ LEFT ════ -->
+    <div id="left">
+
+      <!-- Vinyl + tonearm -->
+      <div id="vinyl-wrap">
+        <!-- Vinyl disc -->
+        <div id="vinyl" onclick="togglePlay()">
+          <div id="vinyl-label"></div>
+          <div id="vinyl-hole"></div>
+        </div>
+
+        <!-- Tonearm -->
+        <div id="arm-wrap">
+          <svg width="110" height="210" viewBox="0 0 110 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Pivot base (outer ring) -->
+            <circle cx="82" cy="26" r="14" fill="#1e1e1e" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/>
+            <circle cx="82" cy="26" r="8"  fill="#2a2a2a"/>
+            <circle cx="82" cy="26" r="3.5" fill="#3a3a3a"/>
+            <circle cx="82" cy="26" r="1.5" fill="#555"/>
+            <!-- Counterweight arm (right) -->
+            <rect x="93" y="22" width="16" height="8" rx="4" fill="#1c1c1c" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <!-- Main arm shaft -->
+            <line x1="82" y1="26" x2="22" y2="185"
+                  stroke="#1a1a1a" stroke-width="9" stroke-linecap="round"/>
+            <line x1="82" y1="26" x2="22" y2="185"
+                  stroke="rgba(255,255,255,.07)" stroke-width="6" stroke-linecap="round"/>
+            <!-- Arm highlight -->
+            <line x1="82" y1="26" x2="22" y2="185"
+                  stroke="rgba(255,255,255,.04)" stroke-width="3" stroke-linecap="round"/>
+            <!-- Headshell -->
+            <rect x="12" y="177" width="20" height="8" rx="3"
+                  fill="#1e1e1e" stroke="rgba(255,255,255,.1)" stroke-width="1"
+                  transform="rotate(-10 22 181)"/>
+            <!-- Stylus rod -->
+            <line x1="18" y1="185" x2="16" y2="202"
+                  stroke="#333" stroke-width="2" stroke-linecap="round"/>
+            <!-- Needle tip -->
+            <circle cx="15.5" cy="203" r="2.5" fill="#666"/>
+            <circle cx="15.5" cy="203" r="1"   fill="#999"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Song info -->
+      <div id="song-info">
+        <div id="song-title">海之恋（厦门版）</div>
+        <div id="song-artist">洪英士 · <span style="color:#93c5fd">外公专属版 · AI协创</span></div>
+        <div id="song-sub">
+          <i class="fas fa-feather-alt" style="font-size:9px"></i>
+          献给厦门经济特区建45周年
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="act-row">
+        <button class="ctrl-btn" id="heart-btn" onclick="toggleHeart(event)" title="喜欢" style="font-size:18px">
+          <i class="far fa-heart"></i>
+        </button>
+        <button class="ctrl-btn" onclick="downloadAudio()" title="下载">
+          <i class="fas fa-download"></i>
+        </button>
+        <button class="ctrl-btn" onclick="shareMusic()" title="分享">
+          <i class="fas fa-share-alt"></i>
+        </button>
+        <button class="ctrl-btn" onclick="showTab('playlist')" title="播放列表">
+          <i class="fas fa-list"></i>
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div id="prog-wrap">
+        <div class="prog-track" id="prog-track">
+          <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+        </div>
+        <div class="time-row">
+          <span class="time-label" id="cur-time">0:00</span>
+          <span class="time-label" id="tot-time">0:00</span>
+        </div>
+      </div>
+
+      <!-- Playback controls -->
+      <div class="ctrl-row">
+        <button class="ctrl-btn" id="shuffle-btn" onclick="toggleShuffle()" title="随机" style="font-size:13px">
+          <i class="fas fa-random"></i>
+        </button>
+        <button class="ctrl-btn" onclick="prevTrack()" title="上一首" style="font-size:20px">
+          <i class="fas fa-step-backward"></i>
+        </button>
+        <button class="play-btn" onclick="togglePlay()">
+          <i id="play-icon" class="fas fa-play"></i>
+        </button>
+        <button class="ctrl-btn" onclick="nextTrack()" title="下一首" style="font-size:20px">
+          <i class="fas fa-step-forward"></i>
+        </button>
+        <button class="ctrl-btn" id="loop-btn" onclick="toggleLoop()" title="循环" style="font-size:13px">
+          <i class="fas fa-redo-alt"></i>
+        </button>
+      </div>
+
+      <!-- Volume -->
+      <div class="vol-row">
+        <button class="ctrl-btn" onclick="toggleMute()" style="font-size:13px;width:28px;flex-shrink:0">
+          <i class="fas fa-volume-up" id="vol-icon"></i>
+        </button>
+        <input type="range" id="vol-slider" min="0" max="100" value="80"
+               oninput="setVolume(this.value)" style="accent-color:#3b82f6">
+        <span id="vol-num" style="color:rgba(255,255,255,.3);font-size:11px;width:24px;text-align:right">80</span>
+      </div>
+
+      <!-- Keyboard hint -->
+      <p style="color:rgba(255,255,255,.18);font-size:10px;letter-spacing:.3px;text-align:center">
+        <kbd style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;border:1px solid rgba(255,255,255,.1)">空格</kbd> 播放 &nbsp;
+        <kbd style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;border:1px solid rgba(255,255,255,.1)">← →</kbd> ±5秒
+      </p>
+    </div>
+
+    <!-- ════ RIGHT: LYRICS ════ -->
+    <div id="right">
+
+      <!-- Tabs header -->
+      <div class="lyrics-hdr">
+        <div style="display:flex;gap:6px">
+          <button id="tab-lyrics-btn" class="tab-btn tab-active" onclick="showTab('lyrics')">
+            <i class="fas fa-music" style="font-size:10px;margin-right:4px"></i>歌词
+          </button>
+          <button id="tab-playlist-btn" class="tab-btn tab-idle" onclick="showTab('playlist')">
+            <i class="fas fa-list" style="font-size:10px;margin-right:4px"></i>列表
+          </button>
+        </div>
+        <button id="sync-btn" onclick="toggleSync()">
+          <i class="fas fa-sync-alt" style="font-size:9px"></i> 同步歌词
+        </button>
+      </div>
+
+      <!-- Lyrics panel -->
+      <div id="panel-lyrics" class="lyrics-scroll" style="flex:1">
+        <!-- Title poem header -->
+        <div style="text-align:center;padding:12px 0 20px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:8px">
+          <p style="font-family:'Noto Serif SC',serif;color:rgba(255,255,255,.7);font-size:16px;font-weight:700;letter-spacing:3px">《 海之恋 》</p>
+          <p style="color:rgba(255,255,255,.35);font-size:11.5px;margin-top:5px">献给厦门经济特区建45周年 · 作者 洪英士</p>
+        </div>
+        <div id="lyric-list" style="padding:4px 0 40px"></div>
+      </div>
+
+      <!-- Playlist panel (hidden by default) -->
+      <div id="panel-playlist" style="display:none;flex:1;overflow-y:auto" class="lyrics-scroll">
+        <div id="playlist-list" style="padding:8px 0"></div>
+      </div>
+
+      <!-- Dedication card -->
+      <div id="ded-card">
+        <p style="color:rgba(255,255,255,.48);font-size:12px;line-height:1.8;font-style:italic;font-family:'Noto Serif SC',serif">
+          "统一大业宏愿共筑，统一祖国，为万世造福！"
+        </p>
+        <p style="color:#60a5fa;font-size:11px;margin-top:4px;text-align:right">
+          — 洪英士《海之恋》· 外公专属版
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Toast -->
+<div id="toast">
+  <i class="fas fa-check-circle" style="color:#34d399;margin-right:6px"></i>
+  <span id="toast-msg">已复制！</span>
+</div>
+
+<!-- Audio -->
+<audio id="audio" preload="auto"></audio>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const TRACKS = [
+  { src:'海之恋厦门.mp3',  title:'海之恋（厦门版）', artist:'洪英士 · 外公专属版 · AI协创' },
+  { src:'海之恋 (1).mp3',  title:'海之恋 (版本一)',   artist:'洪英士' },
+  { src:'海之恋 (2).mp3',  title:'海之恋 (版本二)',   artist:'洪英士' },
+  { src:'海之恋.mp3',      title:'海之恋',            artist:'洪英士' },
+  { src:'厦门分界线.mp3',  title:'厦门分界线',        artist:'洪英士' },
+];
+
+// 洪英士原作《海之恋》，近似时间戳
+const LYRICS = [
+  {t:0,   s:"在祖国的东海之滨，"},
+  {t:8,   s:"有一颗璀璨的明珠。"},
+  {t:17,  s:"朝朝从湛蓝的大海中浮出，"},
+  {t:28,  s:"吟唱着天籁般的史诗音符，"},
+  {t:40,  s:"谱写出改革开放的高亢情愫。"},
+  {t:54,  s:"啊，厦门，"},
+  {t:62,  s:"激越着大海之恋，"},
+  {t:72,  s:"你"},
+  {t:78,  s:"厦庇五洲客、"},
+  {t:88,  s:"门泊万里船，"},
+  {t:100, s:"创业显风流、"},
+  {t:112, s:"创新写卓著，"},
+  {t:124, s:"经济特区"},
+  {t:134, s:"让世界钦仰瞩目。"},
+  {t:150, s:"在祖国的东海之滨，"},
+  {t:160, s:"有一块神奇的沃土，"},
+  {t:172, s:"时时拥抱着"},
+  {t:181, s:"大海博大的胸怀，"},
+  {t:193, s:"挂记着"},
+  {t:202, s:"彼岸同胞的乡愁离苦，"},
+  {t:217, s:"期盼着"},
+  {t:226, s:"祖国宝岛母怀归宿。"},
+  {t:242, s:"啊！厦门，"},
+  {t:254, s:"倾诉着"},
+  {t:263, s:"大海之恋，"},
+  {t:273, s:"你"},
+  {t:280, s:"舒展着双臂，"},
+  {t:292, s:"敞开了胸脯，"},
+  {t:305, s:"扬起了风帆，"},
+  {t:319, s:"畅通了归途，"},
+  {t:334, s:"统一大业"},
+  {t:348, s:"宏愿共筑，"},
+  {t:362, s:"统一祖国，"},
+  {t:378, s:"为万世造福！"},
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let curTrack   = 0;
+let isPlaying  = false;
+let isMuted    = false;
+let isSyncing  = true;
+let isLiked    = false;
+let isLoop     = false;
+let isShuffle  = false;
+let isDragging = false;
+let curLyricIdx= -1;
+
+// ══════════════════════════════════════════
+// AUDIO
+// ══════════════════════════════════════════
+const audio = document.getElementById('audio');
+audio.volume = 0.8;
+audio.src = TRACKS[0].src;
+
+audio.addEventListener('timeupdate', onTimeUpdate);
+audio.addEventListener('loadedmetadata', () => {
+  document.getElementById('tot-time').textContent = fmt(audio.duration);
+});
+audio.addEventListener('ended', onEnded);
+
+function onTimeUpdate(){
+  if(isDragging) return;
+  const pct = audio.duration ? audio.currentTime / audio.duration * 100 : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('cur-time').textContent  = fmt(audio.currentTime);
+  if(isSyncing) syncLyric(audio.currentTime);
+}
+
+function onEnded(){
+  if(isLoop){ audio.currentTime=0; audio.play(); return; }
+  if(isShuffle) curTrack = Math.floor(Math.random() * TRACKS.length);
+  else          curTrack = (curTrack+1) % TRACKS.length;
+  loadTrack(true);
+}
+
+function fmt(s){
+  if(!isFinite(s)||isNaN(s)) return '0:00';
+  const m=Math.floor(s/60), sec=Math.floor(s%60);
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+// ══════════════════════════════════════════
+// TRACK LOADING
+// ══════════════════════════════════════════
+function loadTrack(autoplay=false){
+  const tr = TRACKS[curTrack];
+  document.getElementById('song-title').textContent  = tr.title;
+  document.getElementById('song-artist').innerHTML   = tr.artist.replace('外公专属版 · AI协创','<span style="color:#93c5fd">外公专属版 · AI协创</span>');
+  audio.src = tr.src; audio.load();
+  document.getElementById('prog-fill').style.width = '0%';
+  document.getElementById('cur-time').textContent  = '0:00';
+  document.getElementById('tot-time').textContent  = '0:00';
+  curLyricIdx = -1; updateHighlight(-1);
+  buildPlaylist();
+  if(autoplay) audio.play().then(()=>setPlaying(true)).catch(()=>setPlaying(false));
+  else setPlaying(false);
+}
+
+// ══════════════════════════════════════════
+// PLAY / PAUSE
+// ══════════════════════════════════════════
+function togglePlay(){
+  if(isPlaying){ audio.pause(); setPlaying(false); }
+  else { audio.play().then(()=>setPlaying(true)).catch(e=>console.warn(e)); }
+}
+
+function setPlaying(v){
+  isPlaying = v;
+  document.getElementById('play-icon').className = v ? 'fas fa-pause' : 'fas fa-play';
+
+  // Vinyl spin
+  const vinyl = document.getElementById('vinyl');
+  if(v) vinyl.classList.add('playing');
+  else  vinyl.classList.remove('playing');
+
+  // Tonearm swing
+  const arm = document.getElementById('arm-wrap');
+  if(v) arm.classList.add('playing');
+  else  arm.classList.remove('playing');
+}
+
+// ══════════════════════════════════════════
+// PREV / NEXT
+// ══════════════════════════════════════════
+function prevTrack(){
+  if(audio.currentTime > 3){ audio.currentTime=0; return; }
+  curTrack = (curTrack - 1 + TRACKS.length) % TRACKS.length;
+  loadTrack(isPlaying);
+}
+function nextTrack(){
+  curTrack = isShuffle ? Math.floor(Math.random()*TRACKS.length) : (curTrack+1) % TRACKS.length;
+  loadTrack(isPlaying);
+}
+function toggleLoop(){
+  isLoop = !isLoop;
+  document.getElementById('loop-btn').style.color = isLoop ? '#3b82f6' : '';
+}
+function toggleShuffle(){
+  isShuffle = !isShuffle;
+  document.getElementById('shuffle-btn').style.color = isShuffle ? '#3b82f6' : '';
+}
+
+// ══════════════════════════════════════════
+// PROGRESS BAR (drag to seek)
+// ══════════════════════════════════════════
+const progTrack = document.getElementById('prog-track');
+
+function seekFrom(clientX){
+  const r   = progTrack.getBoundingClientRect();
+  const pct = Math.max(0, Math.min((clientX - r.left) / r.width, 1));
+  document.getElementById('prog-fill').style.width = (pct*100) + '%';
+  if(audio.duration) audio.currentTime = pct * audio.duration;
+}
+
+progTrack.addEventListener('mousedown', e=>{ isDragging=true; seekFrom(e.clientX); });
+progTrack.addEventListener('touchstart', e=>{ isDragging=true; seekFrom(e.touches[0].clientX); },{passive:true});
+document.addEventListener('mousemove',  e=>{ if(isDragging) seekFrom(e.clientX); });
+document.addEventListener('touchmove',  e=>{ if(isDragging) seekFrom(e.touches[0].clientX); },{passive:true});
+document.addEventListener('mouseup',    ()=>{ isDragging=false; });
+document.addEventListener('touchend',   ()=>{ isDragging=false; });
+
+// ══════════════════════════════════════════
+// VOLUME
+// ══════════════════════════════════════════
+function setVolume(v){
+  audio.volume = v/100;
+  document.getElementById('vol-num').textContent = v;
+  const i = document.getElementById('vol-icon');
+  i.className = (v<=0||isMuted) ? 'fas fa-volume-mute' : v<45 ? 'fas fa-volume-down' : 'fas fa-volume-up';
+  if(v>0) isMuted=false;
+}
+function toggleMute(){
+  isMuted = !isMuted; audio.muted = isMuted;
+  const v = +document.getElementById('vol-slider').value;
+  document.getElementById('vol-icon').className = isMuted?'fas fa-volume-mute':v<45?'fas fa-volume-down':'fas fa-volume-up';
+}
+
+// ══════════════════════════════════════════
+// LYRICS
+// ══════════════════════════════════════════
+function buildLyrics(){
+  document.getElementById('lyric-list').innerHTML =
+    LYRICS.map((l,i)=>
+      `<div class="lyric-line" id="ll${i}" onclick="seekToLyric(${i})">${l.s}</div>`
+    ).join('');
+}
+
+function seekToLyric(i){
+  if(!isFinite(audio.duration)) return;
+  audio.currentTime = LYRICS[i].t;
+  if(!isPlaying){ audio.play().then(()=>setPlaying(true)).catch(()=>{}); }
+}
+
+function syncLyric(t){
+  let ni = -1;
+  for(let i=LYRICS.length-1; i>=0; i--){ if(t>=LYRICS[i].t){ ni=i; break; } }
+  if(ni===curLyricIdx) return;
+  updateHighlight(ni);
+  curLyricIdx = ni;
+  if(ni>=0 && isSyncing){
+    const el = document.getElementById(`ll${ni}`);
+    const sc = document.getElementById('panel-lyrics');
+    if(el){ sc.scrollTo({ top: el.offsetTop - sc.clientHeight/2 + el.clientHeight/2, behavior:'smooth' }); }
+  }
+}
+
+function updateHighlight(ni){
+  if(curLyricIdx>=0){ document.getElementById(`ll${curLyricIdx}`)?.classList.remove('active'); }
+  if(ni>=0)         { document.getElementById(`ll${ni}`)?.classList.add('active'); }
+}
+
+function toggleSync(){
+  isSyncing = !isSyncing;
+  const b = document.getElementById('sync-btn');
+  b.className = isSyncing ? '' : 'off';
+  b.innerHTML = `<i class="fas fa-sync-alt" style="font-size:9px"></i> 同步歌词`;
+  if(isSyncing) syncLyric(audio.currentTime);
+}
+
+// ══════════════════════════════════════════
+// PLAYLIST
+// ══════════════════════════════════════════
+function buildPlaylist(){
+  document.getElementById('playlist-list').innerHTML =
+    TRACKS.map((tr,i)=>`
+      <div class="track-item ${i===curTrack?'active':''}" onclick="playTrack(${i})">
+        <span class="track-num">${i===curTrack && isPlaying
+          ? '<i class="fas fa-volume-up" style="font-size:10px;color:#3b82f6"></i>' : i+1}</span>
+        <div style="flex:1;min-width:0">
+          <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tr.title}</div>
+          <div style="color:rgba(255,255,255,.3);font-size:11px">${tr.artist}</div>
+        </div>
+        <i class="fas fa-music" style="font-size:10px;opacity:.25"></i>
+      </div>`
+    ).join('');
+}
+
+function playTrack(i){ curTrack=i; loadTrack(true); }
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function showTab(tab){
+  const lyr = tab === 'lyrics';
+  document.getElementById('panel-lyrics').style.display   = lyr ? '' : 'none';
+  document.getElementById('panel-playlist').style.display = lyr ? 'none' : '';
+  document.getElementById('tab-lyrics-btn').className   = `tab-btn ${lyr  ? 'tab-active' : 'tab-idle'}`;
+  document.getElementById('tab-playlist-btn').className = `tab-btn ${!lyr ? 'tab-active' : 'tab-idle'}`;
+}
+
+// ══════════════════════════════════════════
+// HEART
+// ══════════════════════════════════════════
+function toggleHeart(e){
+  isLiked = !isLiked;
+  const b = document.getElementById('heart-btn');
+  b.innerHTML = isLiked ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+  b.style.color = isLiked ? '#ef4444' : '';
+  if(isLiked) spawnHearts(e);
+}
+function spawnHearts(e){
+  const emojis = ['❤️','💖','💙','💕','🌊','💗','✨','🩵'];
+  for(let i=0; i<9; i++){
+    setTimeout(()=>{
+      const h = document.createElement('div');
+      h.className = 'floating-heart';
+      h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      h.style.cssText = `left:${e.clientX+(Math.random()-.5)*80}px;top:${e.clientY-10}px;font-size:${14+Math.random()*18}px;animation-duration:${1.5+Math.random()*.8}s`;
+      document.body.appendChild(h);
+      setTimeout(()=>h.remove(), 2600);
+    }, i*65);
+  }
+}
+
+// ══════════════════════════════════════════
+// DOWNLOAD / SHARE
+// ══════════════════════════════════════════
+function downloadAudio(){
+  const a = document.createElement('a');
+  a.href = TRACKS[curTrack].src;
+  a.download = TRACKS[curTrack].src;
+  a.click();
+}
+
+function shareMusic(){
+  const text = `🌊 《海之恋》· 洪英士 原作
+
+献给厦门经济特区建45周年
+外公专属版 · AI协创
+
+"在祖国的东海之滨，有一颗璀璨的明珠
+统一大业宏愿共筑，统一祖国，为万世造福！"
+
+❤️ 厦门 · 鼓浪屿 · 白鹭翔集 · 双子塔`;
+  navigator.clipboard?.writeText(text)
+    .then(()=>toast('分享文案已复制 ✓'))
+    .catch(()=>toast('已复制：'+TRACKS[curTrack].title));
+}
+
+function toast(msg, dur=2600){
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), dur);
+}
+
+// ══════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════
+document.addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT') return;
+  const K = {
+    Space:      ()=>{ e.preventDefault(); togglePlay(); },
+    ArrowLeft:  ()=>{ e.preventDefault(); audio.currentTime=Math.max(0,audio.currentTime-5); toast('⏪ -5秒',700); },
+    ArrowRight: ()=>{ e.preventDefault(); audio.currentTime=Math.min(audio.duration||0,audio.currentTime+5); toast('⏩ +5秒',700); },
+    ArrowUp:    ()=>{ e.preventDefault(); const v=Math.min(100,+document.getElementById('vol-slider').value+5); document.getElementById('vol-slider').value=v; setVolume(v); },
+    ArrowDown:  ()=>{ e.preventDefault(); const v=Math.max(0,+document.getElementById('vol-slider').value-5); document.getElementById('vol-slider').value=v; setVolume(v); },
+    KeyM: ()=>toggleMute(),
+    KeyN: ()=>nextTrack(),
+    KeyP: ()=>prevTrack(),
+  };
+  K[e.code]?.();
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildLyrics();
+buildPlaylist();
+</script>
+</body>
+</html>
