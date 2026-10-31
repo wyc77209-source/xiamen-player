@@ -625,7 +625,7 @@ function loadTrack(autoplay=false){
   document.getElementById('prog-fill').style.width = '0%';
   document.getElementById('cur-time').textContent  = '0:00';
   document.getElementById('tot-time').textContent  = '0:00';
-  curLyricIdx = -1; updateHighlight(-1);
+  updateHighlight(-1); curLyricIdx = -1;
   buildPlaylist();
   if(autoplay) audio.play().then(()=>setPlaying(true)).catch(()=>setPlaying(false));
   else setPlaying(false);
